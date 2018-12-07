@@ -1,0 +1,8 @@
+results/*
+log/*
+archive/*
+.ipynb_checkpoints/*
+*.ipynb
+*/_pycache__
+_pycache__/*
+.vscode
