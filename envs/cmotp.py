@@ -106,7 +106,7 @@ class CMOTP(object):
         '''
         Find out if terminal conditions have been reached.
         '''
-        return self.delivered or self.steps > 10000
+        return self.delivered or self.steps >= 10000
 
     def step(self, actions):
         '''

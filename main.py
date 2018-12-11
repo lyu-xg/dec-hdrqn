@@ -62,7 +62,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         h_size = cnn_params.fc
     else:
         env = Env(n_target, n_agent, (gridx, gridy), verbose=verbose, intermediate_r=intermediate_reward)
-    mem = ExperienceTrajectories(n_agent, env.obs_size, tracelen, batch_size)
+    mem = ExperienceTrajectories(n_agent, env.obs_size, tracelen, batch_size, size=(250000  if conv else 16000))
     team = Team(env, mem, n_agent, n_quant, identity, (init_hysteretic, end_hysteretic), dynamic_h, agent_args={
         'train_batch_size': batch_size,
         'train_tracelen': tracelen,
@@ -78,19 +78,19 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     })
 
     t = current_time()
-    for i in range(10000*10000):
+    for i in range(10000*100000):
         
         team.step()
         if team.game_count > 5000:
             break
 
-        # if not i % (1 if conv else 5):
-        team.train()
+        if not i % 5:
+            team.train()
 
         if not i % target_update_freq:
             # team.evaluate()
             team.do_target_update()
-            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps'.format(i/1000, current_time()-t, target_update_freq/1000))
+            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, target_update_freq/1000, team.epsilon))
             t = current_time()
     
     np.save(open('results/{}.npy'.format(identity), 'wb'), np.array(team.eval_results))

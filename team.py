@@ -38,6 +38,7 @@ class Team:
         self.construct_summary_ops()
 
         self.eval_results = []
+        self.epsilon = 1.0
 
     def create_sess(self):
         config = tf.ConfigProto()
@@ -94,6 +95,7 @@ class Team:
         )
         summary = train_result[0]
         self.summary_writer.add_summary(train_result[0], self.step_count)
+        self.epsilon = max(self.epsilon*0.9999, MIN_EPSILON)
 
 
     def construct_summary_ops(self):
@@ -165,9 +167,9 @@ class Team:
                 trans[i].append([o[i], a[i], r, o_[i], t, float(o[i] is not self.memory.ZERO_JOINT_OBS)])
         return trans
 
-    @property
-    def epsilon(self):
-        return (-0.9/EPSILON_ANNEAL_END) * self.step_count + 1 if self.step_count < EPSILON_ANNEAL_END else MIN_EPSILON
+    # @property
+    # def epsilon(self):
+    #     return (-0.9/EPSILON_ANNEAL_END) * self.step_count + 1 if self.step_count < EPSILON_ANNEAL_END else MIN_EPSILON
 
     # def epsilon_at(self, i, anneal_bottom=200000):
     #     return (-0.9/anneal_bottom) * i + 1 if i < anneal_bottom else .1

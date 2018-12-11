@@ -103,12 +103,12 @@ params = [
 params = []
 # for d in (3,):
 #     params.append('-x {} -y {} --q {} --epsilon_hysteretic 1'.format(d, d, 32))
-for run in range(10):
-    params.append('-x 4 -y 4 -q 0 -e .2 --end_hysteretic .4  -i 0 --magic 0 --run_id {}'.format(run))
+for run in range(10,15):
+    params.append('--env_name cmotp1 -q 16 -e .3 --end_hysteretic .5  -i 1 --magic 0 --run_id {}'.format(run))
 
-
+limit_cpu = False
 for i, p in enumerate(params):
-    cmd = 'CUDA_VISIBLE_DEVICES={} python main.py -p {} {} &'.format(
-        i % NUM_GPU, int(random.random()*10), p)
+    cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py -p {} {} &'.format(
+        i % NUM_GPU, 'taskset 0x3FF' if limit_cpu else '', int(random.random()*10), p)
     print(cmd)
     os.system(cmd)
