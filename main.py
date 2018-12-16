@@ -20,7 +20,7 @@ ENVIRONMENTS = {
 
 def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, magic, discount,
           n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
-          huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic,
+          huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step,
           quantile_init_w, implicit_quant, env_name, run_id, batch_size=32):
 
     # Adding sleeping option to be used by batch runner
@@ -62,7 +62,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         h_size = cnn_params.fc
     else:
         env = Env(n_target, n_agent, (gridx, gridy), verbose=verbose, intermediate_r=intermediate_reward)
-    mem = ExperienceTrajectories(n_agent, env.obs_size, tracelen, batch_size, size=(250000  if conv else 16000))
+    mem = ExperienceTrajectories(n_agent, env.obs_size, tracelen, batch_size, size=(250000  if conv else 10000))
     team = Team(env, mem, n_agent, n_quant, identity, (init_hysteretic, end_hysteretic), dynamic_h, agent_args={
         'train_batch_size': batch_size,
         'train_tracelen': tracelen,
@@ -78,17 +78,17 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     })
 
     t = current_time()
-    for i in range(10000*100000):
+    for i in range(total_step):
         
         team.step()
-        if team.game_count > 5000:
-            break
+        # if team.game_count > 5000:
+        #     break
 
         if not i % 5:
             team.train()
 
         if not i % target_update_freq:
-            # team.evaluate()
+            team.evaluate()
             team.do_target_update()
             print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, target_update_freq/1000, team.epsilon))
             t = current_time()
@@ -104,7 +104,7 @@ def main():
     parser.add_argument('--end_hysteretic', action='store', type=float, default=.4)
     parser.add_argument('--quantile_init_w', action='store', type=float, default=.5)
     parser.add_argument('--epsilon_hysteretic', action='store', type=int, default=0)
-    # parser.add_argument('--total_step', action='store', type=int, default=5000 * 1000)
+    parser.add_argument('--total_step', action='store', type=int, default=5000 * 1000)
     parser.add_argument('--env_name', action='store', type=str, default='cmotp1')
     parser.add_argument('-i', '--implicit_quant', action='store', type=int, default=0)
     parser.add_argument('--intermediate_reward', action='store', type=int, default=0)

@@ -5,7 +5,6 @@ import subprocess
 NUM_GPU = str(subprocess.check_output(["nvidia-smi", "-L"])).count('UUID')
 
 
-
 params = [
     # '-x 3 -y 3 --epsilon_hysteretic',
     # '-x 4 -y 4 --epsilon_hysteretic',
@@ -103,8 +102,8 @@ params = [
 params = []
 # for d in (3,):
 #     params.append('-x {} -y {} --q {} --epsilon_hysteretic 1'.format(d, d, 32))
-for run in range(10,15):
-    params.append('--env_name cmotp1 -q 16 -e .3 --end_hysteretic .5  -i 1 --magic 0 --run_id {}'.format(run))
+for run in range(10,20):
+    params.append('--env_name capture_target -x 4 -y 4 -q 16 -e .3 --end_hysteretic .5  -i 1 --magic 1 --run_id {}'.format(run))
 
 limit_cpu = False
 for i, p in enumerate(params):
@@ -112,3 +111,10 @@ for i, p in enumerate(params):
         i % NUM_GPU, 'taskset 0x3FF' if limit_cpu else '', int(random.random()*10), p)
     print(cmd)
     os.system(cmd)
+
+
+#################################################
+
+# currently running magic-IQN on 4x4
+# need to run HDRQN on 4x4
+# need to run muggle-IQN on 4x4 

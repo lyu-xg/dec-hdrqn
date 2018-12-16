@@ -111,8 +111,9 @@ class Team:
                                  tf.summary.scalar('eval_scenario_length', self.eval_summary_ph[1]))
 
     def online_summary(self, R, L):
-        self.eval_results.append([R,L])
-        print('[episode{}] R: {}, L: {}'.format(self.game_count, R, L))
+        return
+        # self.online_results.append([R,L])
+        # print('[episode{}] R: {}, L: {}'.format(self.game_count, R, L))
         # online_perf, online_episode_count = self.sess.run(
         #     self.online_summary_ops,
         #     feed_dict={self.online_summary_ph: np.array([R, L])})
@@ -129,7 +130,7 @@ class Team:
         self.summary_writer.add_summary(eval_episode_count, self.step_count)
         
 
-    def evaluate(self, n_episode=5):
+    def evaluate(self, n_episode=10):
         R, L = 0, 0
         
         for _ in range(n_episode):
