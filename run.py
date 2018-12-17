@@ -1,7 +1,7 @@
 from numpy import random
 import os
 import subprocess
-
+import argparse
 NUM_GPU = str(subprocess.check_output(["nvidia-smi", "-L"])).count('UUID')
 
 
@@ -98,23 +98,29 @@ params = [
     
 ]
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--cpu_limit', action='store', type=int, default=0)
+cpu_limit = parser.parse_args().cpu_limit
 
 params = []
 # for d in (3,):
 #     params.append('-x {} -y {} --q {} --epsilon_hysteretic 1'.format(d, d, 32))
-for run in range(10,20):
-    params.append('--env_name capture_target -x 4 -y 4 -q 16 -e .3 --end_hysteretic .5  -i 1 --magic 1 --run_id {}'.format(run))
+for run in range(8):
+    params.append('--env_name capture_target --n_target 2 -x 4 -y 4 -q 0 -e .3 --end_hysteretic .5  -i 0 --magic 0 --run_id {}'.format(run))
 
-limit_cpu = False
 for i, p in enumerate(params):
     cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py -p {} {} &'.format(
-        i % NUM_GPU, 'taskset 0x3FF' if limit_cpu else '', int(random.random()*10), p)
+        i % NUM_GPU,
+        'taskset {}'.format(hex(int('1' * cpu_limit, 2))) if cpu_limit else '',
+        int(random.random()*10),
+        p
+    )
     print(cmd)
     os.system(cmd)
 
 
-#################################################
+#################################################100
 
 # currently running magic-IQN on 4x4
-# need to run HDRQN on 4x4
-# need to run muggle-IQN on 4x4 
+# need to run HDRQN on 4x4 (runing)
+# need to run muggle-IQN on 4x4 (running)

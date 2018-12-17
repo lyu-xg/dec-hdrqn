@@ -31,8 +31,8 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     sleep(s_sleep)
 
     # unique-identifier-string which intend to be readable somehow
-    identity = 'n_agent={},env={},grid={}x{},n_quant={},hysteretic={}{}-{},magic={},init_bias={},run={}'.format(
-        n_agent, env_name, gridx, gridy, n_quant, 
+    identity = 'n_agent={},n_target={},env={},grid={}x{},n_quant={},hysteretic={}{}-{},magic={},init_bias={},run={}'.format(
+        n_agent, n_target, env_name, gridx, gridy, n_quant, 
         'follow_epsilon' if epsilon_hysteretic else ('dynamic' if dynamic_h else ''), 
         init_hysteretic, end_hysteretic, magic, quantile_init_w, run_id)
     if target_update_freq != 5000:
@@ -104,7 +104,7 @@ def main():
     parser.add_argument('--end_hysteretic', action='store', type=float, default=.4)
     parser.add_argument('--quantile_init_w', action='store', type=float, default=.5)
     parser.add_argument('--epsilon_hysteretic', action='store', type=int, default=0)
-    parser.add_argument('--total_step', action='store', type=int, default=5000 * 1000)
+    parser.add_argument('--total_step', action='store', type=int, default=500 * 1000)
     parser.add_argument('--env_name', action='store', type=str, default='cmotp1')
     parser.add_argument('-i', '--implicit_quant', action='store', type=int, default=0)
     parser.add_argument('--intermediate_reward', action='store', type=int, default=0)
