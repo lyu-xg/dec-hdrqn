@@ -105,8 +105,10 @@ cpu_limit = parser.parse_args().cpu_limit
 params = []
 # for d in (3,):
 #     params.append('-x {} -y {} --q {} --epsilon_hysteretic 1'.format(d, d, 32))
-for run in range(8):
-    params.append('--env_name capture_target --n_target 2 -x 4 -y 4 -q 0 -e .3 --end_hysteretic .5  -i 0 --magic 0 --run_id {}'.format(run))
+# for run in range(2):
+#     params.append('--env_name climb_game --n_target 2 -x 4 -y 4 -q 0 -e .3 --end_hysteretic .5  -i 0 --magic 0 --run_id {}'.format(run))
+for run in range(6):
+    params.append('--env_name capture_target --n_target 1 -x 3 -y 3 -q 16 -e 0.0 --end_hysteretic 0.0  -i 1 --magic 1 --run_id {}'.format(run))
 
 for i, p in enumerate(params):
     cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py -p {} {} &'.format(
@@ -120,7 +122,3 @@ for i, p in enumerate(params):
 
 
 #################################################100
-
-# currently running magic-IQN on 4x4
-# need to run HDRQN on 4x4 (runing)
-# need to run muggle-IQN on 4x4 (running)

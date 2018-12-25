@@ -48,7 +48,7 @@ class Qnetwork:
 
         if self.conv:
             self.obs_input = tf.placeholder(shape=[None, *self.input_dim], dtype=tf.float32, name='obs_input')
-            features = convLayers(tf.reshape(self.obs_input, [-1, 1, *self.input_dim]))
+            features = convLayers(tf.reshape(self.obs_input, [-1, *self.input_dim]))
         else:
             self.obs_input = tf.placeholder(shape=[None, self.input_dim], dtype=tf.float32, name='obs_input')
             features = fully_connected(self.obs_input, 32)
@@ -191,9 +191,10 @@ class Qnetwork:
             target_prob = tf.stop_gradient(target_prob) # ? assume higher prob = higher hysteretic?
         
         is_positive_update = (tf.reduce_mean(dist, axis=1) - tf.reduce_mean(target_dist, axis=1)) > 0
+
         hyteresis_mask = (
             # negative update, we reduce loss by beta scale of `self.hysteretic`
-            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
+            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic else 0.01), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
             # positive update, alpha learning rate = 1
             tf.cast(is_positive_update, tf.float32)
         )

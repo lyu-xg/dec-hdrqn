@@ -6,6 +6,8 @@ from time import time as current_time
 from time import sleep
 from envs.capture_target import CaptureTarget
 from envs.cmotp import CMOTP
+from envs.climb_game import ClimbGame
+from envs.env_CatchPigs import RandomPigEnv
 from team import Team
 from memory import ExperienceTrajectories
 from params import CNN_Feature_Extractors
@@ -16,6 +18,8 @@ ENVIRONMENTS = {
     'cmotp1': lambda: CMOTP(1),
     'cmotp2': lambda: CMOTP(2),
     'cmotp3': lambda: CMOTP(3),
+    'climb_game': ClimbGame,
+    'pig': RandomPigEnv,
 }
 
 def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, magic, discount,
@@ -54,7 +58,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         init_hysteretic = 0
 
     Env = ENVIRONMENTS[env_name]
-    conv = env_name.startswith('cmotp')
+    conv = env_name.startswith('cmotp') or env_name.startswith('pig')
 
     if conv:
         env = Env()
