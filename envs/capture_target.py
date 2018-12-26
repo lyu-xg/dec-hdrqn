@@ -3,8 +3,8 @@ from numpy.random import randint
 
 NORTH = np.array([0, 1])
 WEST = np.array([-1, 0])
-SOUTH = np.array([0, -1])
-EAST = np.array([1, 0])
+SOUTH = - NORTH
+EAST = - WEST
 STAY = np.array([0, 0])
 
 TRANSLATION_TABLE = [
@@ -44,7 +44,8 @@ class CaptureTarget:
         self.agent_positions  = np.stack([self.rand_position() for _ in range(self.n_agent)])
         assert self.target_positions.shape == (self.n_target, 2) 
 
-        won = self.target_captured()
+        if self.target_captured():
+            return self.reset()
 
         return self.get_obs()
 
@@ -66,8 +67,7 @@ class CaptureTarget:
 
         # latent state transition
         self.target_positions = self.move(self.target_positions, self.target_directions, noise=0)
-        self.agent_positions = self.move(self.agent_positions, actions, noise=0.1)
-
+        self.agent_positions = self.move(self.agent_positions, actions, noise=0.05)
         won = self.target_captured()
         if won and self.verbose: print('target captured at step', self.step_n)
         

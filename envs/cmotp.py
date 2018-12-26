@@ -1,8 +1,9 @@
 import numpy as np
 import random
 import cv2
+from .env import Env
 
-class CMOTP(object):
+class CMOTP(Env):
     """ Cooperative multi-agent transporation problem. """
     def __init__(self, version):
         '''
@@ -40,9 +41,6 @@ class CMOTP(object):
     @property
     def n_action(self):
         return self.__out
-
-    def action_space_sample(self):
-        return np.random.randint(self.n_action)
 
     def render(self):
         '''
