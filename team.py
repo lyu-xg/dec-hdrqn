@@ -113,7 +113,7 @@ class Team:
     def online_summary(self, R, L):
         return
         # self.online_results.append([R,L])
-        # print('[episode{}] R: {}, L: {}'.format(self.game_count, R, L))
+        # print('[episode{}] R: {}, L: {}'.format(self.game_count, R, L), flush=True)
         # online_perf, online_episode_count = self.sess.run(
         #     self.online_summary_ops,
         #     feed_dict={self.online_summary_ph: np.array([R, L])})
@@ -121,7 +121,7 @@ class Team:
         # self.summary_writer.add_summary(online_episode_count, self.step_count)
 
     def eval_summary(self, R, L):
-        print('eval return', R)
+        print('eval return', R, flush=True)
         self.eval_results.append([R,L])
         eval_perf, eval_episode_count = self.sess.run(
             self.eval_summary_ops,
