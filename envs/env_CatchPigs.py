@@ -68,7 +68,7 @@ class EnvCatchPigs(object):
         self.if_agt2_catches = False
 
     def check_size(self, size):
-        print("size of map should be an odd integer no smaller than 7")
+        print("size of map should be an odd integer no smaller than 7", flush=True)
         if (size % 2) == 1 and size >= 7:
             return True
         else:

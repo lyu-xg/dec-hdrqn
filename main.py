@@ -31,7 +31,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     # Sleeping random seconds helps to avoid massive collisions between
     # CPU intensive tasks (e.g. env interaction) and GPU intensive tasks (gradient update)
     # when running multiple processes simultaneously 
-    print('sleeping for', s_sleep)
+    print('sleeping for', s_sleep, flush=True)
     sleep(s_sleep)
 
     # unique-identifier-string which intend to be readable somehow
@@ -52,7 +52,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     if implicit_quant:
         identity += ',implicit=1'
 
-    print('\n', colored(identity, 'blue'), '\n')
+    print('\n', colored(identity, 'blue'), '\n', flush=True)
 
     if epsilon_hysteretic:
         init_hysteretic = 0
@@ -94,7 +94,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         if not i % target_update_freq:
             team.evaluate()
             team.do_target_update()
-            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, target_update_freq/1000, team.epsilon))
+            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, target_update_freq/1000, team.epsilon), flush=True)
             t = current_time()
     
     np.save(open('results/{}.npy'.format(identity), 'wb'), np.array(team.eval_results))
