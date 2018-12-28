@@ -69,13 +69,13 @@ class CaptureTarget:
         self.target_positions = self.move(self.target_positions, self.target_directions, noise=0)
         self.agent_positions = self.move(self.agent_positions, actions, noise=0.05)
         won = self.target_captured()
-        if won and self.verbose: print('target captured at step', self.step_n)
+        if won and self.verbose: print('target captured at step', self.step_n, flush=True)
         
         first_encounters = self.update_visited() if self.intermediate_reward else 0
         r = (float(won) + first_encounters / self.n_agent) / 2 if self.intermediate_reward else float(won)
 
         end = self.step_n >= 40
-        if end and self.verbose: print('target not captured')
+        if end and self.verbose: print('target not captured', flush=True)
 
         return self.get_obs(), r, int(won or end)
 

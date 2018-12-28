@@ -23,6 +23,7 @@ class Qnetwork:
             self.prob_tolerant = .5 / self.n_quant # TODO pass as param
         self.quantile_init_w = quantile_init_w
         self.conv = conv
+        self.optimism = 0.5
 
         # assert(implicit_quant and not n_quant or not implicit_quant)
 
@@ -89,8 +90,19 @@ class Qnetwork:
         if self.implicit_quant: #or not self.n_quant:
             Q = fully_connected(layer3, self.n_action, activation=None, init_val=self.quantile_init_w)
             Q = tf.reshape(Q, [-1, self.n_quant, self.n_action])
-            self.QLearn = self.Qout_dist = tf.map_fn(tf.transpose, Q)
+            self.QLearn = self.Qout_dist = tf.map_fn(tf.transpose, Q) # (bs * tl, n_a, n_q)
             self.Qout = tf.reduce_mean(self.Qout_dist, axis=2)
+
+            self.tau_large = tf.reshape(self.tau, [self.batch_size * self.tracelength, self.n_quant, 1]) > self.optimism
+            self.tau_large = tf.cast(self.tau_large, tf.float32)
+
+
+            self.optimistic_Qdist = Q * self.tau_large # (bs*tl, n_q, n_a)
+
+            self.optimistic_Qout = tf.reduce_sum(self.optimistic_Qdist, 1) / (tf.reduce_sum(self.tau_large, 1) + 0.01)
+
+            self.optimistic_predict = tf.argmax(self.Qout, 1, output_type=tf.int32)
+
 
         elif self.n_quant:
             self.QLearn = self.Qout_dist = tf.reshape(
@@ -106,7 +118,7 @@ class Qnetwork:
         
         # tf.summary.histogram('online_actions', self.predict)
 
-        self.online_action = self.predict[-1]
+        self.online_action = (self.predict if self.magic != 2 else self.optimistic_predict)[-1]
 
     def construct_training_method(self):
         self.transition_rewards = tf.placeholder(tf.float32, shape=[None])
@@ -186,15 +198,15 @@ class Qnetwork:
 
         loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=1)
         
-        if self.magic:
+        if self.magic == 1:
             target_prob = self.calculate_batch_target_prob(dist, target_dist)
             target_prob = tf.stop_gradient(target_prob) # ? assume higher prob = higher hysteretic?
-        
+
         is_positive_update = (tf.reduce_mean(dist, axis=1) - tf.reduce_mean(target_dist, axis=1)) > 0
 
         hyteresis_mask = (
             # negative update, we reduce loss by beta scale of `self.hysteretic`
-            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic else 0.01), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
+            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic == 1 else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
             # positive update, alpha learning rate = 1
             tf.cast(is_positive_update, tf.float32)
         )
