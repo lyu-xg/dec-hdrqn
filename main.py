@@ -25,7 +25,7 @@ ENVIRONMENTS = {
 def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, magic, discount,
           n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
           huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step,
-          quantile_init_w, implicit_quant, env_name, run_id, batch_size=32):
+          quantile_init_w, implicit_quant, env_name, run_id, optimism, batch_size=32):
 
     # Adding sleeping option to be used by batch runner
     # Sleeping random seconds helps to avoid massive collisions between
@@ -78,7 +78,8 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         'magic': magic,
         'quantile_init_w': quantile_init_w,
         'implicit_quant': implicit_quant,
-        'conv': conv
+        'conv': conv,
+        'optimism': optimism
     })
 
     t = current_time()
@@ -126,6 +127,7 @@ def main():
     parser.add_argument('-b', '--huber_delta', action='store', type=float, default=1.0)
     parser.add_argument('-u', '--target_update_freq', action='store', type=int, default=5000)
     parser.add_argument('--run_id', action='store', type=int, default=0)
+    parser.add_argument('-o', '--optimism', action='store', type=float, default=0.5)
 
     train(**vars(parser.parse_args()))
     

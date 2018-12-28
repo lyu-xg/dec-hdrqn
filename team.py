@@ -7,7 +7,7 @@ from itertools import chain
 K = 1000
 
 HYSTERESIS_STABLE_AT = 200 * K
-MIN_EPSILON = 0.05 # 0.1
+MIN_EPSILON = 0.1
 EPSILON_ANNEAL_END = 200 * K
 
 class Team:

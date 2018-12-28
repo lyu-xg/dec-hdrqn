@@ -4,7 +4,7 @@ from tfhelpers import fully_connected, convLayers
 
 class Qnetwork:
     def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01,
-                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0,
+                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0, optimism=0.5,
                  learning_rate=0.001, huber_delta = 1.0, discount=0.99, magic=0, conv=0,
                  train_batch_size=32, is_target=False, **kwargs):
         self.sess = sess
@@ -23,7 +23,7 @@ class Qnetwork:
             self.prob_tolerant = .5 / self.n_quant # TODO pass as param
         self.quantile_init_w = quantile_init_w
         self.conv = conv
-        self.optimism = 0.5
+        self.optimism = optimism
 
         # assert(implicit_quant and not n_quant or not implicit_quant)
 
