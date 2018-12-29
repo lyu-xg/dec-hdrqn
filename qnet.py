@@ -4,7 +4,7 @@ from tfhelpers import fully_connected, convLayers
 
 class Qnetwork:
     def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01,
-                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0, optimism=0.5,
+                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0, optimism=0.0,
                  learning_rate=0.001, huber_delta = 1.0, discount=0.99, magic=0, conv=0,
                  train_batch_size=32, is_target=False, **kwargs):
         self.sess = sess
@@ -118,7 +118,7 @@ class Qnetwork:
         
         # tf.summary.histogram('online_actions', self.predict)
 
-        self.online_action = (self.predict if self.magic != 2 else self.optimistic_predict)[-1]
+        self.online_action = (self.predict if not self.optimism else self.optimistic_predict)[-1]
 
     def construct_training_method(self):
         self.transition_rewards = tf.placeholder(tf.float32, shape=[None])
@@ -198,7 +198,7 @@ class Qnetwork:
 
         loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=1)
         
-        if self.magic == 1:
+        if self.magic:
             target_prob = self.calculate_batch_target_prob(dist, target_dist)
             target_prob = tf.stop_gradient(target_prob) # ? assume higher prob = higher hysteretic?
 
@@ -206,7 +206,7 @@ class Qnetwork:
 
         hyteresis_mask = (
             # negative update, we reduce loss by beta scale of `self.hysteretic`
-            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic == 1 else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
+            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
             # positive update, alpha learning rate = 1
             tf.cast(is_positive_update, tf.float32)
         )

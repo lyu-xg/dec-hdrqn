@@ -51,7 +51,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         identity += ',intermediate_reward=1'
     if implicit_quant:
         identity += ',implicit=1'
-    if magic == 2:
+    if optimism:
         identity += ',optimism={}'.format(optimism)
 
     print('\n', colored(identity, 'blue'), '\n', flush=True)
@@ -129,7 +129,7 @@ def main():
     parser.add_argument('-b', '--huber_delta', action='store', type=float, default=1.0)
     parser.add_argument('-u', '--target_update_freq', action='store', type=int, default=5000)
     parser.add_argument('--run_id', action='store', type=int, default=0)
-    parser.add_argument('-o', '--optimism', action='store', type=float, default=0.5)
+    parser.add_argument('-o', '--optimism', action='store', type=float, default=0.0)
 
     train(**vars(parser.parse_args()))
     
