@@ -51,6 +51,8 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         identity += ',intermediate_reward=1'
     if implicit_quant:
         identity += ',implicit=1'
+    if magic == 2:
+        identity += ',optimism={}'.format(optimism)
 
     print('\n', colored(identity, 'blue'), '\n', flush=True)
 
