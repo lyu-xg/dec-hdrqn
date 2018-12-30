@@ -64,7 +64,7 @@ class Team:
         
     def get_actions_and_states(self, obss, hid_state):
         res = self.run_ops_with_feeds(
-            a.get_action_ops(o, s)
+            a.get_action_ops(o, s, self.epsilon)
             for a, o, s in zip(self.agents, obss, hid_state)
         )
 
@@ -88,7 +88,7 @@ class Team:
         batch = self.inverse_joint(self.memory.sample())
 
         train_result = self.run_ops_with_feeds(
-            (a.get_training_ops(*zip(*trace))
+            (a.get_training_ops(*zip(*trace), self.epsilon)
              for a, trace in zip(self.agents, batch)),
             adtl_ops=[self.summaries],
             adtl_feeds={a.hysteretic: self.hysteretic for a in self.agents} # TODO merge this into agent.get_training_ops

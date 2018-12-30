@@ -3,7 +3,7 @@ import tensorflow as tf
 from tfhelpers import fully_connected, convLayers
 
 class Qnetwork:
-    def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01,
+    def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01, distort_type='identity', distort_param=0.0,
                  quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0, optimism=0.0,
                  learning_rate=0.001, huber_delta = 1.0, discount=0.99, magic=0, conv=0,
                  train_batch_size=32, is_target=False, **kwargs):
@@ -24,7 +24,7 @@ class Qnetwork:
         self.quantile_init_w = quantile_init_w
         self.conv = conv
         self.optimism = optimism
-
+        self.distort_type, self.distort_param = distort_type, distort_param
         # assert(implicit_quant and not n_quant or not implicit_quant)
 
 
@@ -46,6 +46,7 @@ class Qnetwork:
     def construct_Qnetwork(self):
         self.batch_size = tf.placeholder(dtype=tf.int32, shape=[], name='batch_size')
         self.tracelength = tf.placeholder(dtype=tf.int32, name='tracelength')
+        self.epsilon = tf.placeholder(dtype=tf.float32, shape=[], name='epsilon')
 
         if self.conv:
             self.obs_input = tf.placeholder(shape=[None, *self.input_dim], dtype=tf.float32, name='obs_input')
@@ -69,6 +70,7 @@ class Qnetwork:
 
         if self.implicit_quant:
             self.tau = tf.random_uniform([self.batch_size * self.tracelength * self.n_quant, 1])
+            self.tau = self.distort(self.tau)
             embedded_tau = fully_connected(self.tau, self.h_size)
             embedded_tau = tf.reshape(embedded_tau, [self.batch_size * self.tracelength, self.n_quant, self.h_size])
             # ! cosine and stuff not implemented
@@ -265,6 +267,17 @@ class Qnetwork:
     #     prob = tf.Print(prob, [prob], 'prob')
     #     return prob
 
+    def distort(self, samples):
+        return {
+            'identity':   lambda x: x,
+            'wang': self.distorter_wang,
+        }[self.distort_type](samples)
+
+    def distorter_wang(self, samples):
+        bias = self.distort_param or self.epsilon # * when param is 0, use epsilon as distortion bias
+        normal = tf.distributions.Normal(0.0, 0.1)
+        return normal.cdf(normal.quantile(samples) + bias)
+
     def select_actions(self, Q, A):
         # Q: (batch_size * tracelen, a_size) OR (batch_size * tracelen, a_size, n_quantile)
         # A: (batch_size * tracelen, )
@@ -300,26 +313,29 @@ class Qnetwork:
     ########################################################################################
     # Exposed "agent-ly" methods, used by "Team" instances to act and learn online
 
-    def get_action_ops(self, obs, state):
+    def get_action_ops(self, obs, state, epsilon):
         # RETURNS: operations and feed_dicts
         ops = [[self.online_action, self.lstm_state]]
         feeds = {
             self.batch_size: 1,
             self.tracelength: 1,
             self.lstm_state_in: state,
-            self.obs_input: [obs]
+            self.obs_input: [obs],
+            self.epsilon: epsilon
         }
         return ops, feeds
 
-    def get_training_ops(self, O, A, R, O_next, T, V, adtl_feeds={}):
+    def get_training_ops(self, O, A, R, O_next, T, V, epsilon, adtl_feeds={}):
         # no need to specify starting state, starts with ZERO_STATE
         feeds = {
             self.target_network.obs_input: O_next,
             self.target_network.batch_size: self.train_batch_size,
             self.target_network.tracelength: self.train_tracelen,
+            self.target_network.epsilon: epsilon,
             self.obs_input: np.concatenate([O, O_next]),
             self.batch_size: self.train_batch_size * 2,
             self.tracelength: self.train_tracelen,
+            self.epsilon: epsilon,
             self.transition_actions: A,
             self.transition_rewards: R,
             self.transition_terminals: T,
