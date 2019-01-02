@@ -6,7 +6,7 @@ from tfhelpers import fully_connected, convLayers
 class Qnetwork:
     def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01, distort_type='identity', distort_param=0.0,
                  quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0,
-                 learning_rate=0.001, huber_delta = 1.0, discount=0.99, magic=0, conv=0,
+                 learning_rate=0.001, huber_delta = 1.0, discount=0.99, likely=0, conv=0,
                  train_batch_size=32, is_target=False, **kwargs):
         self.sess = sess
         self.scope = scope
@@ -15,7 +15,7 @@ class Qnetwork:
         self.quant_mass = tf.constant(1 / (self.n_quant + 1))
         self.learning_rate, self.discount = learning_rate, discount
         self.huber_delta = huber_delta
-        self.magic, self.implicit_quant = magic, implicit_quant # * in implicit case, we fix the number of samples to be `n_quant`
+        self.likely, self.implicit_quant = likely, implicit_quant # * in implicit case, we fix the number of samples to be `n_quant`
         self.quant_mean_loss = quant_mean_loss
         self.train_tracelen, self.train_batch_size = train_tracelen, train_batch_size
         self.train_length = self.train_batch_size * self.train_tracelen
@@ -157,7 +157,7 @@ class Qnetwork:
             3. Distributional DRQN
             4. Distributional Hysteretic DRQN (unknown ! okay let's figure it out)
                 We can reduce the hysteretic when likelyhood of the target is low
-            (Maybe we have a fifth case here, called Magic, toggled by `self.magic`)
+            (Maybe we have a fifth case here, called likely, toggled by `self.likely`)
         4 cases controlled by two parameters, `hysteretical` and `n_quant`
         '''
 
@@ -203,7 +203,7 @@ class Qnetwork:
 
         loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=1)
         
-        if self.magic:
+        if self.likely:
             target_prob = self.calculate_batch_target_prob(dist, target_dist)
             target_prob = tf.stop_gradient(target_prob) # ? assume higher prob = higher hysteretic?
 
@@ -211,7 +211,7 @@ class Qnetwork:
 
         hyteresis_mask = (
             # negative update, we reduce loss by beta scale of `self.hysteretic`
-            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.magic else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
+            tf.cast(tf.logical_not(is_positive_update), tf.float32) * tf.maximum((target_prob if self.likely else 0.0), self.hysteretic) + # ! near zero target_prob makes Q values negatively explode
             # positive update, alpha learning rate = 1
             tf.cast(is_positive_update, tf.float32)
         )

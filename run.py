@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 params = []
 for run in range(4):
-    params.append('--env_name capture_target -q 16 -e 0.2 --end_hysteretic 0.4  -i 1 --magic 1 --distort_type wang --distort_param 0.0 -o 0.0  --run_id {}'.format(run))
+    params.append('--env_name capture_target -q 16 -e 0.2 --end_hysteretic 0.4  -i 1 --likely 1 --distort_type wang --distort_param 0.0 -o 0.0  --run_id {}'.format(run))
 
 for i, p in enumerate(params):
     cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py -p {} {} &'.format(

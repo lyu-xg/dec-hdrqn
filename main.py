@@ -22,7 +22,7 @@ ENVIRONMENTS = {
     'pig': RandomPigEnv,
 }
 
-def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, magic, discount,
+def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
           n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
           huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step, distort_type, distort_param,
           quantile_init_w, implicit_quant, env_name, run_id, batch_size=32):
@@ -35,16 +35,22 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
     sleep(s_sleep)
 
     # unique-identifier-string which intend to be readable somehow
-    identity = 'n_agent={},n_target={},env={},grid={}x{},n_quant={},hysteretic={}{}-{},magic={},init_bias={},run={}'.format(
+    identity = 'n_agent={},env={},grid={}x{},hysteretic={}{}-{},likely={},run={}'.format(
         n_agent, n_target, env_name, gridx, gridy, n_quant, 
         'follow_epsilon' if epsilon_hysteretic else ('dynamic' if dynamic_h else ''), 
-        init_hysteretic, end_hysteretic, magic, quantile_init_w, run_id)
+        init_hysteretic, end_hysteretic, likely, quantile_init_w, run_id)
+    if n_target > 1:
+        identity += ',n_target={}'.format(n_target)
     if target_update_freq != 5000:
         identity += ',target_update={}'.format(target_update_freq)
     if learning_rate != 0.001:
         identity += ',lr={}'.format(learning_rate)
     if quant_mean_loss:
         identity += ',quant_mean_loss=1'
+    if n_quant != 16:
+        identity += ',n_quant={}'.format(n_quant)
+    if quantile_init_w != 0.5:
+        identity += ',init_bias={}'.format(quantile_init_w)
     if huber_delta != 1.0:
         identity += ',huber_delta={}'.format(huber_delta)
     if intermediate_reward:
@@ -77,7 +83,7 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         'huber_delta': huber_delta,
         'quant_mean_loss': quant_mean_loss,
         'discount': discount,
-        'magic': magic,
+        'likely': likely,
         'quantile_init_w': quantile_init_w,
         'implicit_quant': implicit_quant,
         'conv': conv,
@@ -121,7 +127,7 @@ def main():
     parser.add_argument('-y', '--gridy', action='store', type=int, default=3)
     parser.add_argument('-q', '--n_quant', action='store', type=int, default=0)
     parser.add_argument('--quant_mean_loss', action='store', type=int, default=0)
-    parser.add_argument('-m', '--magic', action='store', type=int, default=0)
+    parser.add_argument('-m', '--likely', action='store', type=int, default=0)
     parser.add_argument('-a', '--n_agent', action='store', type=int, default=2)
     parser.add_argument('-t', '--n_target', action='store', type=int, default=1)
     parser.add_argument('-v', '--verbose', action='store', type=int, default=0)
