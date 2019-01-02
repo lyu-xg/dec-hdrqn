@@ -25,7 +25,7 @@ ENVIRONMENTS = {
 def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, magic, discount,
           n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
           huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step, distort_type, distort_param,
-          quantile_init_w, implicit_quant, env_name, run_id, optimism, batch_size=32):
+          quantile_init_w, implicit_quant, env_name, run_id, batch_size=32):
 
     # Adding sleeping option to be used by batch runner
     # Sleeping random seconds helps to avoid massive collisions between
@@ -51,8 +51,6 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         identity += ',intermediate_reward=1'
     if implicit_quant:
         identity += ',implicit=1'
-    if optimism:
-        identity += ',optimism={}'.format(optimism)
     if distort_type != 'identity':
         identity += ',distortion={}{}'.format(distort_type, distort_param)
 
@@ -83,7 +81,6 @@ def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_qua
         'quantile_init_w': quantile_init_w,
         'implicit_quant': implicit_quant,
         'conv': conv,
-        'optimism': optimism,
         'distort_type': distort_type,
         'distort_param': distort_param,
     })
@@ -133,7 +130,6 @@ def main():
     parser.add_argument('-b', '--huber_delta', action='store', type=float, default=1.0)
     parser.add_argument('-u', '--target_update_freq', action='store', type=int, default=5000)
     parser.add_argument('--run_id', action='store', type=int, default=0)
-    parser.add_argument('-o', '--optimism', action='store', type=float, default=0.0)
     parser.add_argument('--distort_type', action='store', type=str, default='identity')
     parser.add_argument('--distort_param', action='store', type=float, default=0.0)
 

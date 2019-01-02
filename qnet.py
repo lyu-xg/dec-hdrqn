@@ -5,7 +5,7 @@ from tfhelpers import fully_connected, convLayers
 
 class Qnetwork:
     def __init__(self, sess, scope, input_dim, n_action, n_quant, quantile_init_w=0.01, distort_type='identity', distort_param=0.0,
-                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0, optimism=0.0,
+                 quant_mean_loss=0, h_size=64, train_tracelen=4, implicit_quant=0,
                  learning_rate=0.001, huber_delta = 1.0, discount=0.99, magic=0, conv=0,
                  train_batch_size=32, is_target=False, **kwargs):
         self.sess = sess
@@ -24,7 +24,6 @@ class Qnetwork:
             self.prob_tolerant = .5 / self.n_quant # TODO pass as param
         self.quantile_init_w = quantile_init_w
         self.conv = conv
-        self.optimism = optimism
         self.distort_type, self.distort_param = distort_type, distort_param
         # assert(implicit_quant and not n_quant or not implicit_quant)
 
@@ -71,7 +70,7 @@ class Qnetwork:
 
         if self.implicit_quant:
             self.tau = tf.random_uniform([self.batch_size * self.tracelength * self.n_quant, 1])
-            self.tau = self.distort(self.tau)
+            self.tau = tf.cond(self.batch_size > 1, lambda: self.distort(self.tau), lambda: self.tau)
             self.tau = tf.cos(math.pi * tf.range(self.h_size) * tf.tile(self.tau, [1, self.h_size]))
             # self.tau = tf.reshape(self.tau, [self.batch_size * self.tracelength * self.n_quant, 1])
             embedded_tau = fully_connected(self.tau, self.h_size)
@@ -98,15 +97,15 @@ class Qnetwork:
             self.QLearn = self.Qout_dist = tf.map_fn(tf.transpose, Q) # (bs * tl, n_a, n_q)
             self.Qout = tf.reduce_mean(self.Qout_dist, axis=2)
 
-            self.tau_large = tf.reshape(self.tau, [self.batch_size * self.tracelength, self.n_quant, 1]) > self.optimism
-            self.tau_large = tf.cast(self.tau_large, tf.float32)
+            # self.tau_large = tf.reshape(self.tau, [self.batch_size * self.tracelength, self.n_quant, 1]) > self.optimism
+            # self.tau_large = tf.cast(self.tau_large, tf.float32)
 
 
-            self.optimistic_Qdist = Q * self.tau_large # (bs*tl, n_q, n_a)
+            # self.optimistic_Qdist = Q * self.tau_large # (bs*tl, n_q, n_a)
 
-            self.optimistic_Qout = tf.reduce_sum(self.optimistic_Qdist, 1) / (tf.reduce_sum(self.tau_large, 1) + 0.01)
+            # self.optimistic_Qout = tf.reduce_sum(self.optimistic_Qdist, 1) / (tf.reduce_sum(self.tau_large, 1) + 0.01)
 
-            self.optimistic_predict = tf.argmax(self.Qout, 1, output_type=tf.int32)
+            # self.optimistic_predict = tf.argmax(self.Qout, 1, output_type=tf.int32)
 
 
         elif self.n_quant:
@@ -123,7 +122,8 @@ class Qnetwork:
         
         # tf.summary.histogram('online_actions', self.predict)
 
-        self.online_action = (self.predict if not self.optimism else self.optimistic_predict)[-1]
+        # self.online_action = (self.predict if not self.optimism else self.optimistic_predict)[-1]
+        self.online_action = self.predict[-1]
 
     def construct_training_method(self):
         self.transition_rewards = tf.placeholder(tf.float32, shape=[None])
@@ -274,12 +274,16 @@ class Qnetwork:
         return {
             'identity':   lambda x: x,
             'wang': self.distorter_wang,
+            'cvnar': self.distorter_conditional_value_not_at_risk,
         }[self.distort_type](samples)
 
     def distorter_wang(self, samples):
         bias = self.distort_param or self.epsilon # * when param is 0, use epsilon as distortion bias
         normal = tf.distributions.Normal(0.0, 0.1)
         return normal.cdf(normal.quantile(samples) + bias)
+
+    def distorter_conditional_value_not_at_risk(self, samples):
+        return 1.0 - (self.distort_param or self.epsilon) * samples
 
     def select_actions(self, Q, A):
         # Q: (batch_size * tracelen, a_size) OR (batch_size * tracelen, a_size, n_quantile)
