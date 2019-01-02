@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import tensorflow as tf
 from tfhelpers import fully_connected, convLayers
@@ -69,11 +70,13 @@ class Qnetwork:
         )
 
         if self.implicit_quant:
-            self.tau = tf.random_uniform([self.batch_size * self.tracelength * self.n_quant, 1])
+            self.tau = tf.random_uniform([self.batch_size * self.tracelength, self.n_quant])
             self.tau = self.distort(self.tau)
+            self.tau = tf.cos(math.pi * tf.range(self.n_quant) * self.tau)
+            self.tau = tf.reshape(self.tau, [self.batch_size * self.tracelength * self.n_quant, 1])
             embedded_tau = fully_connected(self.tau, self.h_size)
             embedded_tau = tf.reshape(embedded_tau, [self.batch_size * self.tracelength, self.n_quant, self.h_size])
-            # ! cosine and stuff not implemented
+            
 
             # (bs, quant, h_size*2)
             # features = tf.concat([tf.map_fn(self.rep_row, features), embedded_tau], axis=2)
