@@ -130,7 +130,7 @@ class Team:
         self.summary_writer.add_summary(eval_episode_count, self.step_count)
         
 
-    def evaluate(self, n_episode=10):
+    def evaluate(self, n_episode=20):
         R, L = 0, 0
         
         for _ in range(n_episode):

@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 params = [
     '--env_name capture_target --n_quant 16 --init_hysteretic 0.2 --end_hysteretic 0.4 ' + \
-    '--implicit 1 --likely 1 --distort_type wang --distort_param 0.3 --run_id {}'.format(run)
+    '--implicit 1 --likely 1 --distort_type cvnar --distort_param 0.0 --run_id {}'.format(run)
     for run in range(4)
 ]
 
