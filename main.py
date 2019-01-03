@@ -22,124 +22,96 @@ ENVIRONMENTS = {
     'pig': RandomPigEnv,
 }
 
-def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
-          n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
-          huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step, distort_type, distort_param,
-          quantile_init_w, implicit_quant, env_name, run_id, batch_size=32):
+DEFAULT_PARAMETERS = {
+    'tracelen': 4,
+    'h_size': 64,
+    's_sleep': 0,
+    'init_hysteretic': .2,
+    'end_hysteretic': .4,
+    'quantile_init_w': .5,
+    'epsilon_hysteretic': 0,
+    'total_step': 500 * 1000,
+    'env_name': 'cmotp1',
+    'implicit_quant': 0,
+    'intermediate_reward': 0,
+    'dynamic_h': 1,
+    'gridx': 3,
+    'gridy': 3,
+    'n_quant': 0,
+    'quant_mean_loss': 0,
+    'likely': 0,
+    'n_agent': 2,
+    'n_target': 1,
+    'verbose': 0,
+    'discount': 0.99,
+    'learning_rate': 0.001,
+    'huber_delta': 1.0,
+    'target_update_freq': 5000,
+    'run_id': 99999,
+    'distort_type': 'identity',
+    'distort_param': 0.0,
+    'batch_size': 32,
+}
 
+# def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
+        #   n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
+        #   huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step, distort_type, distort_param,
+        #   quantile_init_w, implicit_quant, env_name, run_id, batch_size):
+def train(params):
+    P = vars(params)
     # Adding sleeping option to be used by batch runner
     # Sleeping random seconds helps to avoid massive collisions between
     # CPU intensive tasks (e.g. env interaction) and GPU intensive tasks (gradient update)
     # when running multiple processes simultaneously 
-    print('sleeping for', s_sleep, flush=True)
-    sleep(s_sleep)
+    print('sleeping for', params.s_sleep, flush=True)
+    sleep(params.s_sleep)
+    print('run {} woke up:'.format(params.run_id), flush=True)
 
     # unique-identifier-string which intend to be readable somehow
-    identity = 'n_agent={},env={},grid={}x{},hysteretic={}{}-{},likely={},run={}'.format(
-        n_agent, n_target, env_name, gridx, gridy, n_quant, 
-        'follow_epsilon' if epsilon_hysteretic else ('dynamic' if dynamic_h else ''), 
-        init_hysteretic, end_hysteretic, likely, quantile_init_w, run_id)
-    if n_target > 1:
-        identity += ',n_target={}'.format(n_target)
-    if target_update_freq != 5000:
-        identity += ',target_update={}'.format(target_update_freq)
-    if learning_rate != 0.001:
-        identity += ',lr={}'.format(learning_rate)
-    if quant_mean_loss:
-        identity += ',quant_mean_loss=1'
-    if n_quant != 16:
-        identity += ',n_quant={}'.format(n_quant)
-    if quantile_init_w != 0.5:
-        identity += ',init_bias={}'.format(quantile_init_w)
-    if huber_delta != 1.0:
-        identity += ',huber_delta={}'.format(huber_delta)
-    if intermediate_reward:
-        identity += ',intermediate_reward=1'
-    if implicit_quant:
-        identity += ',implicit=1'
-    if distort_type != 'identity':
-        identity += ',distortion={}{}'.format(distort_type, distort_param)
-
+    P['s_sleep'] = 0
+    identity = ','.join(['{}={}'.format(p,v) for p,v in P.items() if v != DEFAULT_PARAMETERS[p]] or ['default'])
     print('\n', colored(identity, 'blue'), '\n', flush=True)
 
-    if epsilon_hysteretic:
-        init_hysteretic = 0
+    Env = ENVIRONMENTS[params.env_name]
 
-    Env = ENVIRONMENTS[env_name]
-    conv = env_name.startswith('cmotp') or env_name.startswith('pig')
-
-    if conv:
+    if params.env_name.startswith('cmotp') or  params.env_name.startswith('pig'):
         env = Env()
-        assert n_target == 1 and n_agent == 2
-        h_size = cnn_params.fc
+        assert params.n_target == 1 and params.n_agent == 2
+        P['h_size'] = cnn_params.fc
+        P['conv'] = True
     else:
-        env = Env(n_target, n_agent, (gridx, gridy), verbose=verbose, intermediate_r=intermediate_reward)
-    mem = ExperienceTrajectories(n_agent, env.obs_size, tracelen, batch_size, size=(250000  if conv else 10000))
-    team = Team(env, mem, n_agent, n_quant, identity, (init_hysteretic, end_hysteretic), dynamic_h, agent_args={
-        'train_batch_size': batch_size,
-        'train_tracelen': tracelen,
-        'h_size': h_size,
-        'learning_rate': learning_rate,
-        'huber_delta': huber_delta,
-        'quant_mean_loss': quant_mean_loss,
-        'discount': discount,
-        'likely': likely,
-        'quantile_init_w': quantile_init_w,
-        'implicit_quant': implicit_quant,
-        'conv': conv,
-        'distort_type': distort_type,
-        'distort_param': distort_param,
-    })
+        P['conv'] = False
+        env = Env(params.n_target, params.n_agent, (params.gridx, params.gridy),
+                  verbose=params.verbose, intermediate_r=params.intermediate_reward)
+    
+    mem = ExperienceTrajectories(params.n_agent, env.obs_size, params.tracelen, 
+                                 params.batch_size, size=(250000  if P['conv'] else 10000))
+    team = Team(env, mem, params.n_agent, identity, 
+                (0 if params.epsilon_hysteretic else params.init_hysteretic, params.end_hysteretic),
+                params.dynamic_h, agent_args=P)
 
     t = current_time()
-    for i in range(total_step):
-        
+    for i in range(params.total_step):
+        # Main Loop
         team.step()
-        # if team.game_count > 5000:
-        #     break
 
         if not i % 5:
             team.train()
 
-        if not i % target_update_freq:
+        if not i % params.target_update_freq:
             team.evaluate()
             team.do_target_update()
-            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, target_update_freq/1000, team.epsilon), flush=True)
+            print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, params.target_update_freq/1000, team.epsilon), flush=True)
             t = current_time()
     
     np.save(open('results/{}.npy'.format(identity), 'wb'), np.array(team.eval_results))
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--tracelen', action='store', type=int, default=4)
-    parser.add_argument('-s', '--h_size', action='store', type=int, default=64)
-    parser.add_argument('-p', '--s_sleep', action='store', type=float, default=0.0)
-    parser.add_argument('-e', '--init_hysteretic', action='store', type=float, default=.2)
-    parser.add_argument('--end_hysteretic', action='store', type=float, default=.4)
-    parser.add_argument('--quantile_init_w', action='store', type=float, default=.5)
-    parser.add_argument('--epsilon_hysteretic', action='store', type=int, default=0)
-    parser.add_argument('--total_step', action='store', type=int, default=500 * 1000)
-    parser.add_argument('--env_name', action='store', type=str, default='cmotp1')
-    parser.add_argument('-i', '--implicit_quant', action='store', type=int, default=0)
-    parser.add_argument('--intermediate_reward', action='store', type=int, default=0)
-    parser.add_argument('-d', '--dynamic_h', action='store', type=int, default=1)
-    parser.add_argument('-x', '--gridx', action='store', type=int, default=3)
-    parser.add_argument('-y', '--gridy', action='store', type=int, default=3)
-    parser.add_argument('-q', '--n_quant', action='store', type=int, default=0)
-    parser.add_argument('--quant_mean_loss', action='store', type=int, default=0)
-    parser.add_argument('-m', '--likely', action='store', type=int, default=0)
-    parser.add_argument('-a', '--n_agent', action='store', type=int, default=2)
-    parser.add_argument('-t', '--n_target', action='store', type=int, default=1)
-    parser.add_argument('-v', '--verbose', action='store', type=int, default=0)
-    parser.add_argument('--discount', action='store', type=float, default=0.99)
-    parser.add_argument('-r', '--learning_rate', action='store', type=float, default=0.001)
-    parser.add_argument('-b', '--huber_delta', action='store', type=float, default=1.0)
-    parser.add_argument('-u', '--target_update_freq', action='store', type=int, default=5000)
-    parser.add_argument('--run_id', action='store', type=int, default=0)
-    parser.add_argument('--distort_type', action='store', type=str, default='identity')
-    parser.add_argument('--distort_param', action='store', type=float, default=0.0)
+    for p, v in DEFAULT_PARAMETERS.items():
+        parser.add_argument('--{}'.format(p), action='store', type=type(v), default=v)
 
-    train(**vars(parser.parse_args()))
+    train(parser.parse_args())
     
     
 if __name__ == '__main__':

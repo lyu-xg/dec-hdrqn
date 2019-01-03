@@ -11,20 +11,19 @@ parser.add_argument('-d', '--dry_run', action='store', type=bool, default=False)
 
 args = parser.parse_args()
 
-params = []
-for run in range(4):
-    params.append('--env_name capture_target -q 16 -e 0.2 --end_hysteretic 0.4  -i 1 --likely 1 --distort_type wang --distort_param 0.0 --run_id {}'.format(run))
+params = [
+    '--env_name capture_target --n_quant 16 --init_hysteretic 0.2 --end_hysteretic 0.4 ' + \
+    '--implicit 1 --likely 1 --distort_type wang --distort_param 0.3 --run_id {}'.format(run)
+    for run in range(4)
+]
 
-for i, p in enumerate(params):
-    cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py -p {} {} &'.format(
+for i, param in enumerate(params):
+    cmd = 'CUDA_VISIBLE_DEVICES={} {} python main.py --s_sleep {} {} &'.format(
         i % NUM_GPU,
         'taskset {}'.format(hex(int('1' * args.cpu_limit, 2))) if args.cpu_limit else '',
         int(random.random()*10),
-        p
+        param
     )
     print(cmd, flush=True)
     if not args.dry_run:
         os.system(cmd)
-
-
-#################################################100

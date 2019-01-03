@@ -6,3 +6,4 @@ archive/*
 */_pycache__
 _pycache__/*
 .vscode
+*.sh

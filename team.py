@@ -15,7 +15,7 @@ class Team:
     Team consists of n Qnetworks which represent n agents.
     Agents interact with environment and learn as a Team.
     '''
-    def __init__(self, env, memory, n_agent, n_quant, identity, hysteretic, dynamic_h, agent_args={}):
+    def __init__(self, env, memory, n_agent, identity, hysteretic, dynamic_h, agent_args={}):
         self.env, self.memory = env, memory
         self.identity = identity
         self.last_obs = self.env.reset()
@@ -27,7 +27,7 @@ class Team:
         self.create_sess()
 
         self.agents = [
-            Qnetwork(self.sess, str(i), env.obs_size, env.n_action, n_quant, **agent_args)
+            Qnetwork(self.sess, str(i), env.obs_size, env.n_action, **agent_args)
             for i in range(n_agent)
         ]
 

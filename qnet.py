@@ -279,7 +279,7 @@ class Qnetwork:
 
     def distorter_wang(self, samples):
         bias = self.distort_param or self.epsilon # * when param is 0, use epsilon as distortion bias
-        normal = tf.distributions.Normal(0.0, 0.1)
+        normal = tf.distributions.Normal(0.0, 1.0)
         return normal.cdf(normal.quantile(samples) + bias)
 
     def distorter_conditional_value_not_at_risk(self, samples):
