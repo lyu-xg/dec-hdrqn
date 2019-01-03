@@ -70,10 +70,10 @@ class Qnetwork:
 
         if self.implicit_quant:
             self.tau = tf.random_uniform([self.batch_size * self.tracelength * self.n_quant, 1])
-            self.tau = tf.cond(self.batch_size > 1, lambda: self.distort(self.tau), lambda: self.tau)
-            self.tau = tf.cos(math.pi * tf.range(self.h_size) * tf.tile(self.tau, [1, self.h_size]))
+            distorted_tau = tf.cond(self.batch_size > 1, lambda: self.distort(self.tau), lambda: self.tau)
+            cosine_distorted_tau = tf.cos(math.pi * tf.range(self.h_size, dtype=tf.float32) * tf.tile(self.tau, [1, self.h_size]))
             # self.tau = tf.reshape(self.tau, [self.batch_size * self.tracelength * self.n_quant, 1])
-            embedded_tau = fully_connected(self.tau, self.h_size)
+            embedded_tau = fully_connected(cosine_distorted_tau, self.h_size)
             embedded_tau = tf.reshape(embedded_tau, [self.batch_size * self.tracelength, self.n_quant, self.h_size])
             
 
