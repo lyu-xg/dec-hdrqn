@@ -51,6 +51,7 @@ DEFAULT_PARAMETERS = {
     'distort_type': 'identity',
     'distort_param': 0.0,
     'batch_size': 32,
+    'buffer_size': 2000,
 }
 
 # def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
@@ -85,7 +86,7 @@ def train(params):
                   verbose=params.verbose, intermediate_r=params.intermediate_reward)
     
     mem = ExperienceTrajectories(params.n_agent, env.obs_size, params.tracelen, 
-                                 params.batch_size, size=(250000  if P['conv'] else 10000))
+                                 params.batch_size, size=params.buffer_size)
     team = Team(env, mem, params.n_agent, identity, 
                 (0 if params.epsilon_hysteretic else params.init_hysteretic, params.end_hysteretic),
                 params.dynamic_h, agent_args=P)
