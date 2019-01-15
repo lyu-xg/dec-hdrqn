@@ -49,7 +49,7 @@ class ExperienceTrajectories:
         self.ZERO_JOINT_ACT = [0] * n_agent
 
         # transition: (joint_o, joint_a, r, joint_o', t)
-        self.ZERO_PADDING = [[self.ZERO_JOINT_OBS, self.ZERO_JOINT_ACT, 0.0, self.ZERO_JOINT_OBS, 0]]
+        self.ZERO_PADDING = [[self.ZERO_JOINT_OBS, self.ZERO_JOINT_ACT, 0.0, self.ZERO_JOINT_OBS, 1]]
 
         self.buf = RingBuf(size=size)
         self.scenario_cache_reset()

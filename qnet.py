@@ -217,6 +217,9 @@ class Qnetwork:
         )
 
 
+        if self.likely == 2:
+            hyteresis_mask = tf.maximum(target_prob, self.hysteretic)
+
         return tf.reduce_mean(self.transition_valid * loss * hyteresis_mask)
 
 

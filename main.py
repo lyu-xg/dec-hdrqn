@@ -31,7 +31,7 @@ DEFAULT_PARAMETERS = {
     'quantile_init_w': .5,
     'epsilon_hysteretic': 0,
     'total_step': 500 * 1000,
-    'env_name': 'cmotp1',
+    'env_name': 'capture_target',
     'implicit_quant': 0,
     'intermediate_reward': 0,
     'dynamic_h': 1,
@@ -52,6 +52,7 @@ DEFAULT_PARAMETERS = {
     'distort_param': 0.0,
     'batch_size': 32,
     'buffer_size': 2000,
+    'result_dir': 'results',
 }
 
 # def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
@@ -105,7 +106,7 @@ def train(params):
             print('[{:.1f}K]took {:.1f} seconds to do {:.1f}K steps (eps={})'.format(i/1000, current_time()-t, params.target_update_freq/1000, team.epsilon), flush=True)
             t = current_time()
     
-    np.save(open('results/{}.npy'.format(identity), 'wb'), np.array(team.eval_results))
+    np.save(open('{}/{}.npy'.format(params.result_dir, identity), 'wb'), np.array(team.eval_results))
 
 def main():
     parser = argparse.ArgumentParser()

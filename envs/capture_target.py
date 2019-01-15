@@ -56,7 +56,7 @@ class CaptureTarget:
         if self.n_agent > 1 and self.n_target == 1:
             tgt_pos_obs = np.tile(tgt_pos_obs, (self.n_agent, 1))
 
-        tgt_pos_obs = self.flick(tgt_pos_obs, prob=self.target_flick_prob)
+        # tgt_pos_obs = self.flick(tgt_pos_obs, prob=self.target_flick_prob)
         return np.concatenate([agt_pos_obs, tgt_pos_obs], axis=1)
 
     def step(self, actions):
