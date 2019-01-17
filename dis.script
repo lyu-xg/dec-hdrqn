@@ -12,3 +12,6 @@
 cd /scratch/lu.xue/dec-hdrqn
 
 srun python main.py --gridx 4 --gridy 4 --n_quant 16  --implicit 1 --likely 1  --run_id $SLURM_ARRAY_TASK_ID --result_dir 55
+srun python main.py --gridx 5 --gridy 5 --n_quant 16  --implicit 1 --likely 1  --run_id $SLURM_ARRAY_TASK_ID --result_dir 66
+srun python main.py --gridx 4 --gridy 4 --n_quant 0  --implicit 0 --likely 0  --run_id $SLURM_ARRAY_TASK_ID --result_dir 55
+srun python main.py --gridx 5 --gridy 5 --n_quant 0  --implicit 0 --likely 0  --run_id $SLURM_ARRAY_TASK_ID --result_dir 66
