@@ -7,8 +7,8 @@
 #SBATCH --mem-per-cpu=1g
 #SBATCH --gres=gpu:1
 #SBATCH --partition=gpu 
-#SBATCH --array=4-19
+#SBATCH --array=0-19
 
 cd /scratch/lu.xue/dec-hdrqn
 
-srun python main.py --env_name capture_target --n_quant 16  --implicit 1 --likely 1  --buffer_size 4000 --run_id $SLURM_ARRAY_TASK_ID --result_dir 33
+srun python main.py --gridx 4 --gridy 4 --n_quant 16  --implicit 1 --likely 1  --run_id $SLURM_ARRAY_TASK_ID --result_dir 55

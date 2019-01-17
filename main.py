@@ -51,7 +51,7 @@ DEFAULT_PARAMETERS = {
     'distort_type': 'identity',
     'distort_param': 0.0,
     'batch_size': 32,
-    'buffer_size': 2000,
+    'buffer_size': 10000,
     'result_dir': 'results',
 }
 
