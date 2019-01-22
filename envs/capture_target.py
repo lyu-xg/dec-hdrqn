@@ -56,7 +56,7 @@ class CaptureTarget:
         if self.n_agent > 1 and self.n_target == 1:
             tgt_pos_obs = np.tile(tgt_pos_obs, (self.n_agent, 1))
 
-        # tgt_pos_obs = self.flick(tgt_pos_obs, prob=self.target_flick_prob)
+        tgt_pos_obs = self.flick(tgt_pos_obs, prob=self.target_flick_prob)
         return np.concatenate([agt_pos_obs, tgt_pos_obs], axis=1)
 
     def step(self, actions):
@@ -95,7 +95,7 @@ class CaptureTarget:
     #####################################################################################
     # Helper methods
 
-    def move(self, positions, directions, noise=0):
+    def move(self, positions, directions, noise=0.05):
         translations = np.stack([self.translation(d, noise=noise) for d in directions])
         positions += translations
         return self.wrap_positions(positions)
@@ -111,7 +111,7 @@ class CaptureTarget:
         return TRANSLATION_TABLE[direction][np.random.choice(3, p=[noise/2, 1-noise, noise/2])]
 
     @staticmethod
-    def flick(N, prob=0.3):
+    def flick(N, prob=0.1):
         mask = np.random.random(N.shape) > prob
         return N * mask
 
