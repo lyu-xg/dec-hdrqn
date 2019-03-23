@@ -68,6 +68,7 @@ class ExperienceTrajectories:
             trace = self.ZERO_PADDING * (self.trace_len - len(trace)) + trace
             self.buf.append(trace)
 
+        # used for monitoring
         R, L = self.total_reward, len(self.scenario_cache) - self.trace_len + 1
         self.scenario_cache_reset()
         return R, L

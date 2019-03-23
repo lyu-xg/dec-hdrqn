@@ -1,8 +1,10 @@
 # Multi-Agent Deep RL for Independent Learners
 
-### Supported features
-- Quantile Network (both implicit and explicit)
-- Double Learning 
+### Supported Features
+- DRQN (with LSTM)
+- Distributional Experimence Trajectories
+- Quantile Networks (both implicit and explicit)
+- Double Learning
 - Hysteretic (supports annealing, toggled using `hynamic_h` param)
 - Time Difference Likelihood!
 - Risk Distortion

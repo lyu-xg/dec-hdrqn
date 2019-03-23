@@ -55,10 +55,6 @@ DEFAULT_PARAMETERS = {
     'result_dir': 'results',
 }
 
-# def train(tracelen, h_size, init_hysteretic, end_hysteretic, gridx, gridy, n_quant, likely, discount,
-        #   n_target, n_agent, verbose, learning_rate, target_update_freq, intermediate_reward,
-        #   huber_delta, dynamic_h, s_sleep, quant_mean_loss, epsilon_hysteretic, total_step, distort_type, distort_param,
-        #   quantile_init_w, implicit_quant, env_name, run_id, batch_size):
 def train(params):
     P = vars(params)
     # Adding sleeping option to be used by batch runner
@@ -76,6 +72,7 @@ def train(params):
 
     Env = ENVIRONMENTS[params.env_name]
 
+    # some environments have graphical observations, hence we use CNN as the front layers
     if params.env_name.startswith('cmotp') or  params.env_name.startswith('pig'):
         env = Env()
         assert params.n_target == 1 and params.n_agent == 2

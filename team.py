@@ -12,6 +12,7 @@ EPSILON_ANNEAL_END = 200 * K
 
 class Team:
     '''
+    IMPORTANT
     Team consists of n Qnetworks which represent n agents.
     Agents interact with environment and learn as a Team.
     '''
