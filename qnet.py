@@ -149,18 +149,6 @@ class Qnetwork:
         # here goes BELLMAN
         targetQ = R + self.discount * targetQ * (- T + 1)
 
-        
-        '''
-        We have 4 ways to calculate loss 
-            1. DRQN (huber loss not useful because we have only one task, hence reward magnitude has no variance)
-            2. Hysteretic DRQN
-            3. Distributional DRQN
-            4. Distributional Hysteretic DRQN (unknown ! okay let's figure it out)
-                We can reduce the hysteretic when likelyhood of the target is low
-            (Maybe we have a fifth case here, called likely, toggled by `self.likely`)
-        4 cases controlled by two parameters, `hysteretical` and `n_quant`
-        '''
-
         if self.distributional:
             # handles case 3 and 4
             self.loss = self.quantile_loss(Q, targetQ)
