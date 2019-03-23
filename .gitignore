@@ -3,7 +3,9 @@ log/*
 archive/*
 .ipynb_checkpoints/*
 *.ipynb
-*/_pycache__
+*/__pycache__
 _pycache__/*
 .vscode
 *.sh
+run.py
+*.script
