@@ -2,7 +2,7 @@
 
 ### Supported Features
 - DRQN (with LSTM)
-- Distributional Experimence Trajectories
+- Distributed Experience Trajectories
 - Quantile Networks (both implicit and explicit)
 - Double Learning
 - Hysteretic (supports annealing, toggled using `hynamic_h` param)
